@@ -5,3 +5,8 @@ let content = fs.readFileSync("./contracts/verifier.sol", { encoding: 'utf-8' })
 let bumped = content.replace(solidityRegex, 'pragma solidity ^0.8.0');
 
 fs.writeFileSync("./contracts/verifier.sol", bumped);
+
+content = fs.readFileSync("./contracts/bonus.sol", { encoding: 'utf-8' });
+bumped = content.replace(solidityRegex, 'pragma solidity ^0.8.0');
+
+fs.writeFileSync("./contracts/bonus.sol", bumped);

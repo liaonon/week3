@@ -1,12 +1,90 @@
+// include "../../node_modules/circomlib/circuits/comparators.circom";
+// include "./pedersenhash.circom";
+// include "../../node_modules/circomlib/circuits/bitify.circom";
 
-// I mixed the Mini Mastermind and the Number Mastermind
-// which only have 6 rooms to gueeses and use the numbers to replace the color
-// and the guess player will get the sum of the gussing numbers.
+// template Main() {
+//     // Public inputs
+//     signal input pubGuessA;
+//     signal input pubGuessB;
+//     signal input pubGuessC;
+//     signal input pubGuessD;
+//     signal input pubNumBlacks;
+//     signal input pubNumWhites;
+//     signal input pubSolnHash;
+
+//     // Private inputs: the solution to the puzzle
+//     signal private input privSolnA;
+//     signal private input privSolnB;
+//     signal private input privSolnC;
+//     signal private input privSolnD;
+
+//     signal private input privSaltedSoln;
+
+//     // Output
+//     signal output solnHashOut;
+
+//     var nb = 0;
+
+//     var guess = [pubGuessA, pubGuessB, pubGuessC, pubGuessD];
+//     var soln =  [privSolnA, privSolnB, privSolnC, privSolnD];
+
+//     // Count black pegs
+//     for (var i=0; i<4; i++) {
+//         if (guess[i] == soln[i]) {
+//             nb += 1;
+//             // Set matching pegs to 0
+//             guess[i] = 0;
+//             soln[i] = 0;
+//         }
+//     }
+//     var nw = 0;
+
+//     // Count white pegs
+//     // block scope isn't respected, so k and j have to be declared outside
+//     var k = 0;
+//     var j = 0;
+//     for (j=0; j<4; j++) {
+//         for (k=0; k<4; k++) {
+//             // the && operator doesn't work
+//             if (j != k) {
+//                 if (guess[j] == soln[k]) {
+//                     if (guess[j] > 0) {
+//                         nw += 1;
+//                         // Set matching pegs to 0
+//                         guess[j] = 0;
+//                         soln[k] = 0;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     // Create a constraint around the number of black pegs
+//     nb * nb === pubNumBlacks * nb;
+
+//     // Create a constraint around the number of white pegs
+//     nw * nw ===  pubNumWhites * nw;
+
+//     // Verify that the hash of the private solution matches pubSolnHash
+//     // via a constraint that the publicly declared solution hash matches the
+//     // private solution witness
+
+//     component pedersen = PedersenHashSingle();
+//     pedersen.in <== privSaltedSoln;
+
+//     solnHashOut <== pedersen.encoded;
+//     pubSolnHash === pedersen.encoded;
+// }
+
+// component main = Main();
+
+
+
 pragma circom 2.0.0;
 
-include "../../node_modules/circomlib/circuits/comparators.circom";
-include "../../node_modules/circomlib/circuits/bitify.circom";
-include "../../node_modules/circomlib/circuits/poseidon.circom";
+include "../node_modules/circomlib/circuits/comparators.circom";
+include "../node_modules/circomlib/circuits/bitify.circom";
+include "../node_modules/circomlib/circuits/poseidon.circom";
 
 template HitAndBlow() {
     // Public inputs
@@ -17,9 +95,6 @@ template HitAndBlow() {
     signal input pubNumHit;
     signal input pubNumBlow;
     signal input pubSolnHash;
-
-    //guess times
-    signal input guessTimes;
 
     // Private inputs
     signal input privSolnA;
@@ -64,13 +139,6 @@ template HitAndBlow() {
         }
     }
 
-    // Create a constraint that the guessTimes digits is less than 7.
-
-    component lesnTan7times = LessThan(4);
-    lesnTan7times.in[0] <== guessTimes;
-    lesnTan7times.in[1] <== 7;
-    lesnTan7times.out === 1;
-  
     // Count hit & blow
     var hit = 0;
     var blow = 0;
@@ -102,17 +170,15 @@ template HitAndBlow() {
     equalBlow.out === 1;
 
     // Verify that the hash of the private solution matches pubSolnHash
-    component poseidon = Poseidon(6);
+    component poseidon = Poseidon(5);
     poseidon.inputs[0] <== privSalt;
     poseidon.inputs[1] <== privSolnA;
     poseidon.inputs[2] <== privSolnB;
     poseidon.inputs[3] <== privSolnC;
     poseidon.inputs[4] <== privSolnD;
-    poseidon.inputs[5] <== guessTimes;
-
 
     solnHashOut <== poseidon.out;
     pubSolnHash === solnHashOut;
  }
 
- component main {public [pubGuessA, pubGuessB, pubGuessC, pubGuessD, pubNumHit, pubNumBlow, pubSolnHash, guessTimes]} = HitAndBlow();
+ component main {public [pubGuessA, pubGuessB, pubGuessC, pubGuessD, pubNumHit, pubNumBlow, pubSolnHash]} = HitAndBlow();
